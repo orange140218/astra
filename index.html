@@ -139,6 +139,70 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   font-family:inherit;backdrop-filter:blur(6px);transition:all .2s;padding:0;line-height:1;}
 #musBtn:hover{border-color:rgba(0,212,255,.7);background:rgba(0,212,255,.08);box-shadow:0 0 14px rgba(0,212,255,.35);}
 #musBtn.off{color:#8b93b8;border-color:rgba(139,147,184,.3);}
+/* ===== 移动端触屏适配（body.touch 由 isTouch 检测挂载）===== */
+#touchUI{position:fixed;inset:0;pointer-events:none;z-index:45;display:none;}
+body.touch #touchUI{display:block;}
+canvas,body.touch #world{touch-action:none;}
+.tb{pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:12px;border:1px solid rgba(0,212,255,.4);background:rgba(13,17,30,.68);color:var(--cy);
+  font-family:Consolas,monospace;font-size:14px;letter-spacing:.05em;user-select:none;-webkit-user-select:none;
+  touch-action:none;backdrop-filter:blur(4px);transition:background .12s,box-shadow .12s;}
+.tb.hold{border-color:rgba(0,212,255,.5);}
+.tb.on{background:rgba(0,212,255,.25);box-shadow:0 0 16px rgba(0,212,255,.45);}
+.tb.big{width:74px;height:74px;border-radius:50%;font-size:17px;}
+.tb.mid{width:56px;height:56px;}
+.tb.sml{width:46px;height:46px;font-size:12px;border-radius:10px;}
+.tb.warn{border-color:rgba(255,138,151,.45);color:#ff8a97;}
+.tb .sub{font-size:8.5px;color:var(--dim);margin-top:2px;display:block;text-align:center;line-height:1;}
+#tDpad{position:absolute;left:14px;bottom:64px;width:170px;height:170px;}
+#tDpad .tb{width:56px;height:56px;}
+#tDpad .tW{left:57px;top:0;}#tDpad .tA{left:0;top:57px;}#tDpad .tS{left:57px;top:114px;}#tDpad .tD{left:114px;top:57px;}
+#tAct{position:absolute;right:16px;bottom:70px;display:flex;flex-direction:column;gap:10px;align-items:flex-end;}
+#tOrb{position:absolute;right:16px;bottom:70px;display:flex;flex-direction:column;gap:10px;align-items:center;}
+#tOrbRow{display:flex;gap:10px;align-items:flex-end;}
+#tFn{position:absolute;left:14px;bottom:64px;display:grid;grid-template-columns:repeat(4,46px);gap:8px;}
+#tClose{position:absolute;right:14px;top:64px;width:44px;height:44px;border-radius:10px;}
+/* 虚拟摇杆（vjoy 模式：左摇杆 + 右交互键——主菜单「虚拟摇杆」按钮开关，st.vjoy 持久化）*/
+#tStick{pointer-events:auto;position:absolute;left:20px;bottom:72px;width:152px;height:152px;touch-action:none;}
+#tStick .sBase{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(0,212,255,.32);background:rgba(13,17,30,.42);box-shadow:inset 0 0 24px rgba(0,212,255,.12);}
+#tStick .sHead{position:absolute;left:50%;top:50%;width:66px;height:66px;border-radius:50%;transform:translate(-50%,-50%);
+  border:1.5px solid rgba(0,212,255,.65);background:rgba(0,212,255,.16);box-shadow:0 0 18px rgba(0,212,255,.35);
+  display:flex;align-items:center;justify-content:center;color:var(--cy);font-size:15px;user-select:none;-webkit-user-select:none;}
+#tStick .sBase::after{content:"";position:absolute;left:50%;top:50%;width:46%;height:46%;transform:translate(-50%,-50%);border-radius:50%;border:1px dashed rgba(0,212,255,.18);}
+#vjoyBtn{display:none;margin-top:12px;padding:10px 22px;border-radius:10px;border:1px solid rgba(0,212,255,.45);
+  background:rgba(0,212,255,.07);color:var(--cy);font-family:inherit;font-size:12.5px;letter-spacing:.12em;cursor:pointer;transition:all .2s;}
+#vjoyBtn:hover{background:rgba(0,212,255,.16);box-shadow:0 0 14px rgba(0,212,255,.3);}
+#vjoyBtn.on{border-color:rgba(0,255,157,.6);color:#00ff9d;background:rgba(0,255,157,.08);}
+body.touch #vjoyBtn{display:inline-block;}
+/* 触屏+窄屏布局收缩（信息栏/任务栏/库存/卡片全部防溢出） */
+@media (max-width:860px){
+  body.touch #orbLeft{min-width:132px;font-size:10.5px;line-height:1.7;padding:9px 11px;}
+  body.touch #orbLeft b{font-size:11.5px;}
+  body.touch #orbRight{width:150px;font-size:10.5px;line-height:1.65;padding:9px 11px;}
+  body.touch #orbRight b{font-size:11.5px;}
+  body.touch #taskBox{width:150px;font-size:10.5px;padding:9px 10px;}
+  body.touch .taskrow{font-size:10.5px;gap:6px;}
+  body.touch #invBar{flex-wrap:wrap;max-width:96vw;justify-content:center;gap:5px;padding:7px 9px;bottom:8px;}
+  body.touch .inv{min-width:38px;padding:3px 5px;}
+  body.touch .inv .n{font-size:11px;}
+  body.touch #ctrlHint{display:none;}
+  body.touch #playerBox{font-size:9.5px;padding:7px 9px;bottom:8px;}
+  body.touch #knowCard{width:min(348px,92vw);left:8px;}
+  body.touch #knowList{width:170px;}
+  body.touch #notice{white-space:normal;max-width:92vw;font-size:11.5px;bottom:190px;}
+  body.touch #guideBar{max-width:92vw;font-size:10.5px;top:52px;}
+  body.touch #manualBtn{left:auto;right:14px;top:64px;}
+  body.touch #warpBar{top:8px;gap:5px;}
+  body.touch .wbtn{padding:5px 9px;font-size:10px;}
+  body.touch #menu .goals{max-width:92vw;font-size:11px;padding:12px 14px;}
+  body.touch .mbtn{padding:12px 20px;font-size:14px;}
+  body.touch #tip{top:56%;font-size:11px;}
+  body.touch #pan{padding:16px 14px;max-height:90vh;}
+  body.touch .prow{flex-wrap:wrap;font-size:11.5px;gap:8px;}
+  body.touch .pbtn{padding:8px 18px;}
+  body.touch #musBtn{bottom:auto;top:14px;right:14px;}
+}
+
 </style>
 </head>
 <body>
@@ -151,6 +215,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   <div class="phase">从地球到海王星 · 相邻星球中转链</div>
   <button class="mbtn" id="btnNew">开 始 梦 想 之 旅</button>
   <button class="mbtn ghost" id="btnCont">继 续 任 务（已有存档）</button>
+  <button id="vjoyBtn">🕹 虚拟摇杆 · 关</button>
   <div class="goals">
     <b>小E 的梦想 ▸</b><br>
     『离开地球，去太阳系的其它星球看看。』<br>
@@ -188,6 +253,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 <div id="countdown"></div>
 <button id="musBtn" title="音乐开关 [B]">♪</button>
 <div id="knowCard"></div>
+<div id="touchUI"></div>
 
 <div id="panelRoot">
   <div class="hcard" id="pan">
@@ -1118,6 +1184,7 @@ const defState=()=>({
   xmet:{},           // 外星矿物库存（EVA 采集即遥测入库）id->n
   techLv:0,          // 推进科技等级 0..TECHS.length
   tankLv:0,          // 燃料罐扩容等级 0..TANK_UPS.length（容量×1.3/级 · 干重×0.92/级）
+  vjoy:false,        // 虚拟摇杆模式（主菜单开关 · vjoyPref 偏好源注入）
   knows:{},          // 科普知识卡已看记录 id->true（📖 手册+防重复弹卡）
   chNoted:{},        // 故事章节推进通知已发记录 ch->true
   storySeen:false,   // 开场故事（小E 的梦想）已展示
@@ -4012,6 +4079,204 @@ window.addEventListener("wheel",e=>{
   }
   if(scene==="orbit"&&ob){ob.zoom=clamp(ob.zoom*(e.deltaY>0?0.8:1.25),2e-9,0.6);}
 },{passive:true});
+// ---------- 移动端触屏适配：虚拟按键（hold 注入 keys / tap 派发键盘事件走全量现有逻辑）+ pinch 缩放 ----------
+const isTouch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+if(isTouch)document.body.classList.add("touch");
+const tUI=document.getElementById("touchUI");
+let tLastKey="";
+// ---------- 虚拟摇杆（主菜单开关 · vjoyPref 全局偏好源 → st.vjoy 存档持久化，migrateState 用 defState.vjoy=vjoyPref 自动补旧档）----------
+let vjoyPref=false;
+function vjoyOn(){return st&&typeof st.vjoy==="boolean"?st.vjoy:vjoyPref;}
+function updateVjoyBtn(){
+  const b=document.getElementById("vjoyBtn");
+  if(!b)return;
+  const on=vjoyOn();
+  b.textContent="🕹 虚拟摇杆 · "+(on?"开":"关");
+  b.classList.toggle("on",on);
+}
+function toggleVjoy(){
+  vjoyPref=!vjoyOn();
+  if(st){st.vjoy=vjoyPref;save();}
+  updateVjoyBtn();
+  tLastKey="";
+  S.ui();
+}
+function tBtn(html,cls,code,mode,extra){
+  // code: 键名（hold=keys 注入 / tap=KeyboardEvent 派发复用现有 keydown 全部逻辑）
+  return '<div class="tb '+cls+'" data-tcode="'+code+'" data-tmode="'+mode+'"'+(extra||'')+'>'+html+'</div>';
+}
+function renderTouchUI(){
+  if(!document.body.classList.contains("touch"))return;   // 触屏模式由 body.touch 决定（真实设备 isTouch 自动挂载 · 测试可手动挂载）
+  const key=scene+"|"+(panel?"p":"-")+"|"+(scene==="orbit"&&ob?(ob.autopilot?"a":(ob.tMinus>0?"t":"-")):"-");
+  if(key===tLastKey)return;
+  tLastKey=key;
+  if(panel){
+    tUI.innerHTML=tBtn("✕","sml warn","Escape","tap",' id="tClose"');
+    return;
+  }
+  if(scene==="base"||scene==="surf"){
+    const right=
+      '<div id="tAct">'+
+      tBtn((scene==="surf"?"采集<span class='sub'>E</span>":"交互<span class='sub'>E</span>"),"big","KeyE","tap")+
+      tBtn((scene==="surf"?"返回<br>着陆器":"菜单"),"mid","Escape","tap")+
+      '</div>';
+    if(vjoyOn()){
+      tUI.innerHTML='<div id="tStick"><div class="sBase"></div><div class="sHead" id="sHead">✥</div></div>'+right;
+      return;
+    }
+    tUI.innerHTML=
+      '<div id="tDpad">'+
+      tBtn("▲","","KeyW","hold",' style="position:absolute"')+
+      tBtn("◀","","KeyA","hold",' style="position:absolute"')+
+      tBtn("▼","","KeyS","hold",' style="position:absolute"')+
+      tBtn("▶","","KeyD","hold",' style="position:absolute"')+
+      '</div>'+right;
+    return;
+  }
+  if(scene==="orbit"&&ob){
+    if(ob.autopilot||ob.tMinus>0){
+      tUI.innerHTML='<div id="tAct">'+tBtn("接管<span class='sub'>P</span>","mid","KeyP","tap")+'</div>';
+      return;
+    }
+    const fnBtns=
+      tBtn("顺行<br><span class='sub'>T</span>","sml","KeyT","tap")+
+      tBtn("逆行<br><span class='sub'>R</span>","sml","KeyR","tap")+
+      tBtn("分离<br><span class='sub'>␣</span>","sml","Space","tap")+
+      tBtn("加速<br><span class='sub'>⇚</span>","sml","warp","tap")+
+      tBtn("节点<br><span class='sub'>N</span>","sml","KeyN","tap")+
+      tBtn("视野<br><span class='sub'>M</span>","sml","KeyM","tap")+
+      tBtn("手册<br><span class='sub'>H</span>","sml","KeyH","tap")+
+      tBtn("菜单<br><span class='sub'>ESC</span>","sml","Escape","tap");
+    if(vjoyOn()){
+      // 摇杆模式：左摇杆（上=点火W · 左右=转向A/D）+ 功能网格移右侧
+      tUI.innerHTML='<div id="tStick"><div class="sBase"></div><div class="sHead" id="sHead">✥</div></div>'+
+        '<div id="tFn" style="left:auto;right:14px;bottom:76px">'+fnBtns+'</div>';
+      return;
+    }
+    tUI.innerHTML='<div id="tFn">'+fnBtns+'</div>'+
+      '<div id="tOrb">'+
+      '<div id="tOrbRow">'+
+      tBtn("◀","","KeyA","hold")+
+      tBtn("点火<span class='sub'>W</span>","big","KeyW","hold")+
+      tBtn("▶","","KeyD","hold")+
+      '</div>'+
+      '</div>';
+    return;
+  }
+  tUI.innerHTML="";
+}
+function tTap(el){
+  const code=el.dataset.tcode;
+  if(!code)return;
+  if(code==="warp"){  // 时间加速循环：1→10→60→1k→100k→1（复用 setWarp，含 cap 拒绝）
+    const steps=[1,10,60,1000,100000];
+    const i=steps.indexOf(ob?ob.warp:1);
+    setWarp(steps[(i+1)%steps.length]||1);
+    return;
+  }
+  window.dispatchEvent(new KeyboardEvent("keydown",{code:code,key:code==="Space"?" ":code,bubbles:true}));
+}
+// ---------- 摇杆拖动引擎（8 向分区注入 keys · 死区 30% · 松手回中）----------
+const STICK_R=55,STICK_DEAD=0.3;
+let stickId=null,stickKeys=[];
+function stickZone(deg){   // atan2(dy,dx)：0=右 90=下 ±180=左 -90=上（屏幕坐标 y 向下）
+  if(deg>=-22.5&&deg<22.5)return ["KeyD"];
+  if(deg>=22.5&&deg<67.5)return ["KeyS","KeyD"];
+  if(deg>=67.5&&deg<112.5)return ["KeyS"];
+  if(deg>=112.5&&deg<157.5)return ["KeyS","KeyA"];
+  if(deg>=157.5||deg<-157.5)return ["KeyA"];
+  if(deg>=-157.5&&deg<-112.5)return ["KeyA","KeyW"];
+  if(deg>=-112.5&&deg<-67.5)return ["KeyW"];
+  return ["KeyW","KeyD"];
+}
+function stickApply(dx,dy){
+  stickKeys.forEach(k=>{delete keys[k];});
+  stickKeys=[];
+  const head=document.getElementById("sHead");
+  const d=Math.hypot(dx,dy);
+  const cl=Math.min(d,STICK_R);
+  const ux=d>0?dx/d:0,uy=d>0?dy/d:0;
+  if(head)head.style.transform="translate(calc(-50% + "+(ux*cl).toFixed(1)+"px), calc(-50% + "+(uy*cl).toFixed(1)+"px))";
+  if(d<STICK_R*STICK_DEAD)return;
+  stickKeys=stickZone(Math.atan2(dy,dx)*180/Math.PI);
+  stickKeys.forEach(k=>{keys[k]=true;});
+}
+function stickReset(){
+  stickId=null;
+  stickKeys.forEach(k=>{delete keys[k];});
+  stickKeys=[];
+  const head=document.getElementById("sHead");
+  if(head){
+    head.style.transition="transform .15s";
+    head.style.transform="translate(-50%,-50%)";
+    setTimeout(()=>{if(head)head.style.transition="";},170);
+  }
+}
+function tBind(){
+  tUI.addEventListener("touchstart",e=>{
+    const sk=e.target.closest&&e.target.closest("#tStick");
+    if(sk){
+      e.preventDefault();
+      const base=document.getElementById("tStick");
+      if(!base||!e.touches.length)return;
+      const r=base.getBoundingClientRect();
+      const t0=e.touches[0];
+      stickId=t0.identifier;
+      stickApply(t0.clientX-(r.left+r.width/2),t0.clientY-(r.top+r.height/2));
+      return;
+    }
+    const t=e.target.closest&&e.target.closest(".tb");
+    if(!t)return;
+    e.preventDefault();
+    if(t.dataset.tmode==="hold"){
+      keys[t.dataset.tcode]=true;
+      t.classList.add("on");
+    }else{
+      tTap(t);
+      t.classList.add("on");
+      setTimeout(()=>t.classList.remove("on"),160);
+    }
+  },{passive:false});
+  tUI.addEventListener("touchmove",e=>{
+    if(stickId===null)return;
+    const t=[].slice.call(e.touches).find(x=>x.identifier===stickId);
+    if(!t)return;
+    e.preventDefault();
+    const base=document.getElementById("tStick");
+    if(!base)return;
+    const r=base.getBoundingClientRect();
+    stickApply(t.clientX-(r.left+r.width/2),t.clientY-(r.top+r.height/2));
+  },{passive:false});
+  const tEnd=e=>{
+    if(stickId!==null&&e.touches&&[].slice.call(e.touches).every(x=>x.identifier!==stickId)){
+      stickReset();
+      return;
+    }
+    const t=e.target.closest&&e.target.closest(".tb");
+    if(t&&t.dataset.tmode==="hold"){delete keys[t.dataset.tcode];t.classList.remove("on");}
+  };
+  tUI.addEventListener("touchend",tEnd);
+  tUI.addEventListener("touchcancel",tEnd);
+  document.getElementById("vjoyBtn").addEventListener("click",()=>toggleVjoy());
+  updateVjoyBtn();
+}
+tBind();
+// pinch 双指缩放（orbit 场景视野）——挂 canvas，单指不拦截（地面/菜单正常触摸滚动）
+let pinchD0=0,pinchZ0=0;
+window.addEventListener("touchstart",e=>{
+  if(scene!=="orbit"||!ob||e.touches.length!==2||panel)return;
+  pinchD0=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  pinchZ0=ob.zoom;
+},{passive:true});
+window.addEventListener("touchmove",e=>{
+  if(scene!=="orbit"||!ob||e.touches.length!==2||panel||!pinchD0)return;
+  e.preventDefault();
+  const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  ob.zoom=clamp(pinchZ0*d/pinchD0,2e-9,0.6);
+},{passive:false});
+// 每帧低频同步虚拟键布局（场景/面板/自动驾驶状态变化才重渲）
+setInterval(()=>{if(document.body.classList.contains("touch"))renderTouchUI();updateVjoyBtn();},300);
+renderTouchUI();
    window.ASTRA={smelt:startSmelt,buildRocket:buildRocket,close:closePanel,fill:fillFuel,launch:goLaunch,resume:resumeFlight,abort:returnToBase,upgrade:startUpgrade,techUp:startTechUp,tankUp:startTankUp,planSel:planSel,planSlide:planSlide,fill3:fill3,nodeDv:nodeDv,makeNode:makeNode,surfSample:surfSample,liftoff:liftoffFromSurf,surfOps:openSurfaceOps,surfEnter:surfEnter,surfReturn:surfReturn,uncheat:removeCheat,research:startResearch,viewReport:openAnalysis,geoReport:openGeoReport,quit:quitToMenu,music:toggleMusic,story:openStoryIntro,storyGo:storyGo,manual:openManual,finale:openFinale,chapToggle:chapToggle,liveTut:liveTut,knowToggle:knowToggle,knowView:knowView,buyIce:buyIce};
 initStars();
 initSnow();
@@ -5422,6 +5687,84 @@ if(qs.has("at")){
           const p11=panBody.innerHTML.indexOf("梦想1号")>=0&&panBody.innerHTML.indexOf("NF-1")>=0;
           atLog("ST11-dream",p11&&ROCKETS.every(r=>r.dream),{});
           closePanel();
+          // ST19 移动端触屏适配（虚拟按键：hold 注入 keys / tap 派发键盘事件 / 三场景布局 / 面板关闭键）
+          document.body.classList.add("touch");   // headless 无触摸硬件——手动挂载触屏模式
+          tLastKey="";renderTouchUI();
+          const tUI19=document.getElementById("touchUI");
+          const t19a=getComputedStyle(tUI19).display==="block";
+          // base 场景：D-pad 四向 hold + E/菜单 tap
+          scene="base";
+          tLastKey="";renderTouchUI();
+          const h19b=tUI19.innerHTML;
+          const t19b=h19b.indexOf("tDpad")>=0&&h19b.indexOf('data-tcode="KeyW"')>=0&&h19b.indexOf('data-tmode="hold"')>=0&&h19b.indexOf('data-tcode="KeyE"')>=0&&h19b.indexOf('data-tcode="Escape"')>=0;
+          // hold 注入：touchstart/touchend → keys 注入 + .on 高亮（TouchEvent 合成，代码只用 e.target）
+          const w19=tUI19.querySelector('[data-tcode="KeyW"]');
+          w19.dispatchEvent(new TouchEvent("touchstart",{bubbles:true,cancelable:true}));
+          const t19h=keys.KeyW===true&&w19.classList.contains("on");
+          w19.dispatchEvent(new TouchEvent("touchend",{bubbles:true,cancelable:true}));
+          const t19h2=keys.KeyW===undefined&&!w19.classList.contains("on");
+          // orbit 场景：8 功能键 + W/A/D hold 组；autopilot 态只渲染接管键
+          scene="orbit";ob.autopilot=false;ob.tMinus=0;
+          tLastKey="";renderTouchUI();
+          const h19c=tUI19.innerHTML;
+          const t19c=h19c.indexOf("tFn")>=0&&h19c.indexOf("tOrb")>=0&&h19c.indexOf('data-tcode="KeyT"')>=0&&h19c.indexOf('data-tcode="warp"')>=0&&h19c.indexOf('data-tcode="KeyN"')>=0&&h19c.indexOf('data-tcode="Space"')>=0;
+          ob.autopilot=true;
+          tLastKey="";renderTouchUI();
+          const t19d=tUI19.innerHTML.indexOf('data-tcode="KeyP"')>=0&&tUI19.innerHTML.indexOf("tOrb")<0;
+          ob.autopilot=false;
+          // tap 派发：tTap(Escape) 走现有 keydown 面板关闭链路
+          openMissionPanel();
+          tLastKey="";renderTouchUI();
+          const t19e=tUI19.innerHTML.indexOf("tClose")>=0;
+          const es19=tUI19.querySelector('[data-tcode="Escape"]');
+          tTap(es19);
+          const t19e2=panel===null;
+          // warp 循环 tap（1→10）
+          const wq=ob.warp;
+          const wbtn=tUI19.querySelector('[data-tcode="warp"]');
+          tLastKey="";renderTouchUI();
+          const wbtn2=tUI19.querySelector('[data-tcode="warp"]')||wbtn;
+          const warpSteps=[1,10,60,1000,100000];
+          tTap({dataset:{tcode:"warp"}});
+          const t19w=ob.warp===warpSteps[(warpSteps.indexOf(wq)+1)%warpSteps.length];
+          atLog("ST19-touch",t19a&&t19b&&t19h&&t19h2&&t19c&&t19d&&t19e&&t19e2&&t19w,
+            {ui:t19a,base:t19b,hold:t19h,holdEnd:t19h2,orbit:t19c,auto:t19d,close:t19e,escTap:t19e2,warp:t19w});
+          // ST20 虚拟摇杆（主菜单开关 · 开启后摇杆左/交互键右 · 8 向分区注入 · 死区 · 松手回中复位）
+          const vb20=document.getElementById("vjoyBtn");
+          const t20a=getComputedStyle(vb20).display!=="none"&&vb20.textContent.indexOf("虚拟摇杆")>=0&&vb20.textContent.indexOf("关")>=0;
+          toggleVjoy();
+          const t20b=st.vjoy===true&&vb20.classList.contains("on")&&vb20.textContent.indexOf("开")>=0;
+          // base 场景：摇杆在左（tStick）+交互键在右（tAct）·D-pad 消失
+          scene="base";
+          tLastKey="";renderTouchUI();
+          const h20=tUI19.innerHTML;
+          const t20c=h20.indexOf("tStick")>=0&&h20.indexOf("sHead")>=0&&h20.indexOf("tAct")>=0&&h20.indexOf('data-tcode="KeyE"')>=0&&h20.indexOf("tDpad")<0;
+          // 8 向分区注入：正上→W；斜右上→W+D；正左→A；死区内不注入
+          stickApply(0,-40);
+          const t20d=keys.KeyW===true&&keys.KeyD===undefined&&keys.KeyA===undefined;
+          stickApply(30,-30);
+          const t20e=keys.KeyW===true&&keys.KeyD===true;
+          stickApply(-40,0);
+          const t20f=keys.KeyA===true&&keys.KeyW===undefined&&keys.KeyD===undefined;
+          stickApply(8,0);   // 死区内（<55*0.3=16.5）
+          const t20g=keys.KeyA===undefined;
+          stickReset();
+          const t20h=keys.KeyA===undefined&&keys.KeyW===undefined&&keys.KeyD===undefined;
+          // orbit vjoy 模式：摇杆左+功能网格移右（tFn 在）
+          scene="orbit";ob.autopilot=false;ob.tMinus=0;
+          tLastKey="";renderTouchUI();
+          const h20o=tUI19.innerHTML;
+          const t20i=h20o.indexOf("tStick")>=0&&h20o.indexOf("tFn")>=0&&h20o.indexOf('data-tcode="KeyT"')>=0&&h20o.indexOf("tOrb")<0;
+          // 关闭恢复 D-pad 布局+存档持久化（切回 base 场景断言——tDpad 只在地面场景渲染）
+          toggleVjoy();
+          scene="base";
+          tLastKey="";renderTouchUI();
+          const t20j=st.vjoy===false&&tUI19.innerHTML.indexOf("tDpad")>=0&&tUI19.innerHTML.indexOf("tStick")<0;
+          const sv20=JSON.parse(localStorage.getItem(SAVE_KEY)||"{}");
+          atLog("ST20-vjoy",t20a&&t20b&&t20c&&t20d&&t20e&&t20f&&t20g&&t20h&&t20i&&t20j&&sv20.st.vjoy===false,
+            {btn:t20a,on:t20b,base:t20c,up:t20d,diag:t20e,left:t20f,dead:t20g,reset:t20h,orbit:t20i,off:t20j});
+          document.body.classList.remove("touch");
+          scene="orbit";
           // ST7 终局（放最后 · checkTasks 触发 chNoted 后 setTimeout 会自动弹 finale）
           st.surfLand={};FOOTWORLDS.forEach(w=>st.surfLand[w]=1);
           st.done={};st.doneCount=0;st.chNoted={};
