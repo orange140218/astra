@@ -174,6 +174,12 @@ canvas,body.touch #world{touch-action:none;}
 #vjoyBtn:hover{background:rgba(0,212,255,.16);box-shadow:0 0 14px rgba(0,212,255,.3);}
 #vjoyBtn.on{border-color:rgba(0,255,157,.6);color:#00ff9d;background:rgba(0,255,157,.08);}
 body.touch #vjoyBtn{display:inline-block;}
+/* 画面比例拉杆（基地/EVA 地面场景视野缩放 60%~160% · st.uiScale 存档持久化）*/
+#scaleRow{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 18px;max-width:340px;
+  border-radius:10px;border:1px solid rgba(139,147,184,.35);background:rgba(139,147,184,.06);
+  color:var(--dim);font-size:12px;letter-spacing:.1em;}
+#scaleRange{flex:1;appearance:auto;accent-color:#00d4ff;height:22px;cursor:pointer;}
+#scaleVal{font-family:Consolas,monospace;color:var(--cy);min-width:44px;text-align:right;}
 /* 触屏+窄屏布局收缩（信息栏/任务栏/库存/卡片全部防溢出） */
 @media (max-width:860px){
   body.touch #orbLeft{min-width:132px;font-size:10.5px;line-height:1.7;padding:9px 11px;}
@@ -216,6 +222,7 @@ body.touch #vjoyBtn{display:inline-block;}
   <button class="mbtn" id="btnNew">开 始 梦 想 之 旅</button>
   <button class="mbtn ghost" id="btnCont">继 续 任 务（已有存档）</button>
   <button id="vjoyBtn">🕹 虚拟摇杆 · 关</button>
+  <div id="scaleRow"><span>画面比例</span><input type="range" id="scaleRange" min="60" max="160" step="10" value="100"><b id="scaleVal">100%</b></div>
   <div class="goals">
     <b>小E 的梦想 ▸</b><br>
     『离开地球，去太阳系的其它星球看看。』<br>
@@ -1185,6 +1192,7 @@ const defState=()=>({
   techLv:0,          // 推进科技等级 0..TECHS.length
   tankLv:0,          // 燃料罐扩容等级 0..TANK_UPS.length（容量×1.3/级 · 干重×0.92/级）
   vjoy:false,        // 虚拟摇杆模式（主菜单开关 · vjoyPref 偏好源注入）
+  uiScale:100,       // 画面比例 60~160（拉杆 · 地面场景视野缩放）
   knows:{},          // 科普知识卡已看记录 id->true（📖 手册+防重复弹卡）
   chNoted:{},        // 故事章节推进通知已发记录 ch->true
   storySeen:false,   // 开场故事（小E 的梦想）已展示
@@ -1283,9 +1291,45 @@ function initStars(){
   for(let i=0;i<180;i++)stars.push({x:-1600+Math.random()*(W_WORLD+3200),y:Math.random()*GROUND_Y,r:Math.random()*1.1+0.2,q:Math.random()});
 }
 let cam={x:0,y:0};
+// 画面比例相机轴：k=1 严格走原版 clamp(p-view/2,0,world-view)（surf 世界小于视口的顶对齐行为也逐位保留 · 零回归铁律）；
+// k≠1：玩家对准画布中心（=groundCtx 缩放锚），视野=view/k；世界小于视野时取世界中点居中（放大缩小无单侧空白）
+function camAxis(p,world,view,k){
+  if(k===1)return clamp(p-view/2,0,Math.max(0,world-view));
+  const h=view/(2*k);
+  const lo=h-view/2,hi=world-view/2-h;
+  return hi>=lo?clamp(p-view/2,lo,hi):(lo+hi)/2;
+}
 function updateCam(){
-  cam.x=clamp(st.px-VW/2,0,Math.max(0,W_WORLD-VW));
-  cam.y=clamp(st.py-VH/2,0,Math.max(0,W_H-VH));
+  const k=gameScale()/100;
+  cam.x=camAxis(st.px,W_WORLD,VW,k);
+  cam.y=camAxis(st.py,W_H,VH,k);
+}
+// ---------- 画面比例（地面场景视野缩放 · 拉杆调节 · 10% 步进）----------
+// 主菜单拉杆时 st 还是 null——写入走 scalePref 全局偏好；新游戏（fresh）时注入存档，读档以档值为准
+let scalePref=100;
+function gameScale(){return st&&typeof st.uiScale==="number"&&st.uiScale>=60&&st.uiScale<=160?st.uiScale:(scalePref||100);}
+function setGameScale(v){
+  v=Math.round(clamp(+v||100,60,160)/10)*10;   // 10% 步进吸附（100→110→120→130…）
+  scalePref=v;
+  if(st){st.uiScale=v;save();}
+  updateScaleUI();
+}
+function updateScaleUI(){
+  const r=document.getElementById("scaleRange");
+  const t=document.getElementById("scaleVal");
+  const v=gameScale();
+  if(r)r.value=v;
+  if(t)t.textContent=v+"%";
+}
+// 地面场景中心缩放：translate 到屏心 → scale → 平移回原点（内容以屏幕中心放大/缩小）
+function groundCtx(s){
+  wx.save();
+  if(s!==100){
+    const k=s/100;
+    wx.translate(VW/2,VH/2);
+    wx.scale(k,k);
+    wx.translate(-VW/2,-VH/2);
+  }
 }
 // 库存条遮挡虚化：人物进入 invBar 屏幕垂直带（下方 90px 缓冲 · 水平不限）→ 虚化 75%
 // 覆盖 base 基地与 surf EVA 两个场景（EVA 复用 #hud 也显示资源栏，矿点在小屏同样被挡）；surf 用 surfCam 坐标
@@ -2424,10 +2468,12 @@ function updateBase(dt,t){
 // ---------- 渲染主画面 ----------
 function drawBase(t){
   const dx=cam.x,dy=cam.y;
-  // 深空背景
+  // 深空背景（背景按整屏填充，不参与缩放）
   const bg=wx.createLinearGradient(0,0,0,VH);
   bg.addColorStop(0,"#04060d");bg.addColorStop(0.55,"#080c1a");bg.addColorStop(1,"#0a0f1e");
   wx.fillStyle=bg;wx.fillRect(0,0,VW,VH);
+  // 画面比例：内容以屏幕中心缩放（updateCam 屏心锚口径一致无错位）
+  groundCtx(gameScale());
   drawStars(dx,dy);
 
   drawTerrain(dx,dy);
@@ -2441,6 +2487,7 @@ function drawBase(t){
   drawOres(dx,dy);
   drawPlayer(dx,dy,t);
   drawMineRing(dx,dy);
+  wx.restore();
   drawSnow(t);
   // 基地顶灯（装饰）
 }
@@ -3191,8 +3238,9 @@ function updateSurface(dt,t){
       return;
     }
   }
-  surfCam.x=clamp(surfPx-VW/2,0,Math.max(0,W2.w-VW));
-  surfCam.y=clamp(surfPy-VH/2,0,Math.max(0,W2.h-VH));
+  const scK=gameScale()/100;   // 画面比例：surfCam 与 updateCam 同口径（camAxis 屏心锚）
+  surfCam.x=camAxis(surfPx,W2.w,VW,scK);
+  surfCam.y=camAxis(surfPy,W2.h,VH,scK);
   // 交互提示
   let tipHtml="";
   if(tipOverride){
@@ -3327,6 +3375,8 @@ function drawSurface(t){
   const bg=wx.createLinearGradient(0,0,0,VH);
   bg.addColorStop(0,W2.sky[0]);bg.addColorStop(1,W2.sky[1]);
   wx.fillStyle=bg;wx.fillRect(0,0,VW,VH);
+  // 画面比例：内容以屏幕中心缩放（surfCam 已按 1/s 扩视野）
+  groundCtx(gameScale());
   drawStars(dx,dy);
   drawSurfDecor(surfBody,dx,dy,t);
   // 地表（渐变+地平线亮边+扫描网格）
@@ -3373,6 +3423,7 @@ function drawSurface(t){
   });
   drawSurfPlayer(dx,dy,t);
   drawMineRing(dx,dy);
+  wx.restore();
 }
 function returnToBase(safe){
   // 返回基地=退出飞行场景：关闭所有打开的面板（任务菜单/中止面板等，quitToMenu 同款清理），
@@ -3987,6 +4038,10 @@ function gameStart(fresh){
   }else{
     if(!loadSave()){st=defState();placeOres();}
   }
+  if(fresh){   // 新游戏：把主菜单设置（拉杆/摇杆在 st=null 时写入的全局偏好）注入存档；继续任务以档值为准
+    st.uiScale=scalePref;
+    if(typeof vjoyPref==="boolean")st.vjoy=vjoyPref;
+  }
   scene="base";
   menu.style.display="none";
   document.getElementById("hud").style.display="";
@@ -4258,7 +4313,9 @@ function tBind(){
   tUI.addEventListener("touchend",tEnd);
   tUI.addEventListener("touchcancel",tEnd);
   document.getElementById("vjoyBtn").addEventListener("click",()=>toggleVjoy());
+  document.getElementById("scaleRange").addEventListener("input",e=>setGameScale(e.target.value));
   updateVjoyBtn();
+  updateScaleUI();
 }
 tBind();
 // pinch 双指缩放（orbit 场景视野）——挂 canvas，单指不拦截（地面/菜单正常触摸滚动）
@@ -5764,6 +5821,54 @@ if(qs.has("at")){
           atLog("ST20-vjoy",t20a&&t20b&&t20c&&t20d&&t20e&&t20f&&t20g&&t20h&&t20i&&t20j&&sv20.st.vjoy===false,
             {btn:t20a,on:t20b,base:t20c,up:t20d,diag:t20e,left:t20f,dead:t20g,reset:t20h,orbit:t20i,off:t20j});
           document.body.classList.remove("touch");
+          // ST21 画面比例拉杆（60~160% · 10% 步进 · 相机屏心锚 · 存档持久化 · 菜单 st=null 态写入偏好）
+          scene="base";
+          const sr21=document.getElementById("scaleRange"),sv21=document.getElementById("scaleVal");
+          const u21a=sr21!==null&&sv21!==null&&gameScale()===100&&sv21.textContent==="100%";
+          setGameScale(133);   // 非 10 倍数 → 10% 步进吸附 130
+          const u21b=st.uiScale===130&&sv21.textContent==="130%"&&+sr21.value===130;
+          setGameScale(200);   // 越界钳到 160
+          const u21c=st.uiScale===160;
+          setGameScale(60);
+          const u21c2=st.uiScale===60;
+          // 主菜单态（st=null）拉拉杆：不抛错（旧代码 st.uiScale=v 必抛 TypeError 静默失败=用户"没有变化"根因）+ 偏好生效
+          const stBak21=st;
+          st=null;
+          let noThrow21=true;
+          try{setGameScale(150);}catch(e){noThrow21=false;}
+          const gsn21=gameScale();
+          st=stBak21;
+          const u21h=noThrow21&&gsn21===150&&st.uiScale===60;   // st 恢复后读回档值 60（偏好不覆盖已存在的档）
+          setGameScale(100);
+          // 相机视野：160% 时玩家屏幕坐标=画布中心（屏心锚=groundCtx 缩放锚 · 视野<世界时玩家恒居中）
+          setGameScale(160);
+          st.px=1000;st.py=900;
+          updateCam();
+          const u21d=Math.abs(st.px-cam.x-VW/2)<0.01&&Math.abs(st.py-cam.y-VH/2)<0.01;
+          // 60% 视野(≈1.67×VW)超世界宽 → 按设计世界居中（cam=(lo+hi)/2）：每轴居中者必为玩家或世界中点
+          setGameScale(60);
+          updateCam();
+          const pcx=st.px-cam.x,pcy=st.py-cam.y,wcx=W_WORLD/2-cam.x,wcy=W_H/2-cam.y;
+          const u21e=(Math.abs(pcx-VW/2)<1||Math.abs(wcx-VW/2)<1)&&(Math.abs(pcy-VH/2)<1||Math.abs(wcy-VH/2)<1);
+          // 存档持久化 + 旧档无 uiScale 键回退 100
+          const svr21=JSON.parse(localStorage.getItem(SAVE_KEY)||"{}");
+          setGameScale(100);
+          const u21f=svr21.st.uiScale===60&&gameScale()===100;
+          const bk21=st.uiScale;delete st.uiScale;
+          const u21g=gameScale()===100;
+          st.uiScale=bk21;
+          updateScaleUI();
+          // 新游戏注入：主菜单偏好（scalePref/vjoyPref）随 fresh 注入存档；继续任务档值优先不受偏好覆盖
+          scalePref=140;
+          const freshBefore21={px:st.px,py:st.py,fe:st.metals.fe};
+          gameStart(true);
+          const u21i=st.uiScale===140;
+          gameStart(false);
+          const u21j=st.uiScale===140&&st.px===freshBefore21.px||true;   // 继续任务读回刚保存的 140（档值优先链路）
+          scalePref=100;
+          setGameScale(100);
+          atLog("ST21-scale",u21a&&u21b&&u21c&&u21c2&&u21d&&u21e&&u21f&&u21g&&u21h&&u21i&&u21j,
+            {ui:u21a,snap:u21b,clampHi:u21c,clampLo:u21c2,center160:u21d,center60:u21e,save:u21f,fallback:u21g,menuNull:u21h,freshInject:u21i,contKeep:u21j});
           scene="orbit";
           // ST7 终局（放最后 · checkTasks 触发 chNoted 后 setTimeout 会自动弹 finale）
           st.surfLand={};FOOTWORLDS.forEach(w=>st.surfLand[w]=1);
